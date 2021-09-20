@@ -8,6 +8,7 @@ namespace CTApi
         private CtClient Client;
         private ConnectionState _state = ConnectionState.Disconnected;
 
+        #region Events and Delegates
         public delegate void ConnectionStateChangedEventHandler(object sender, ConnectionStateEventArgs e);
         public delegate void QuoteEventHandler(object sender, CtQuoteEventArgs e);
         public delegate void PositionOpenEventHandler(object sender, CtOrderDataEventArgs e);
@@ -19,6 +20,7 @@ namespace CTApi
         public event PositionOpenEventHandler OnPositionOpen;
         public event PositionCloseEventHandler OnPositionClose;
         public event PositionModifiedEventHandler OnPositionModify;
+        #endregion
 
         public CtApi()
         {
