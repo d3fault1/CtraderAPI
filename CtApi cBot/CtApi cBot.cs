@@ -1,7 +1,6 @@
 ﻿using cAlgo.API;
 using CTApiService;
 using System;
-using System.Windows.Forms;
 using System.Linq;
 using System.Collections.Generic;
 
@@ -10,7 +9,7 @@ namespace cAlgo.Robots
     [Robot(TimeZone = TimeZones.UTC, AccessRights = AccessRights.FullAccess)]
     public class CtApicBot : Robot
     {
-        [Parameter(DefaultValue = 0.0)]
+        [Parameter(DefaultValue = 2529)]
         public int Port { get; set; }
 
         public CtApiService service = null;
@@ -22,14 +21,14 @@ namespace cAlgo.Robots
             Positions.Opened += PositionsOpened;
             Positions.Modified += PositionsModified;
             Positions.Closed += PositionsClosed;
-            MessageBox.Show(string.Format("Service running on localhost:{0}", Port));
+            Print(string.Format("Service running on localhost:{0}", Port));
         }
 
         protected override void OnTick()
         {
             if (service != null)
             {
-                service.QuoteUpdateCallback(new CtQuote());
+                service.QuoteUpdateCallback(new CtQuoteData());
             }
         }
 
@@ -39,7 +38,7 @@ namespace cAlgo.Robots
             Positions.Modified -= PositionsModified;
             Positions.Closed -= PositionsClosed;
             CtAdapter.GetInstance().RemoveBot(Port);
-            MessageBox.Show("Service stopped");
+            Print("Service stopped");
         }
 
         private void PositionsOpened(PositionOpenedEventArgs obj)
@@ -75,7 +74,7 @@ namespace cAlgo.Robots
                     Ticket = obj.Position.Id,
                     Symbol = obj.Position.SymbolName,
                     Type = obj.Position.TradeType.ToString(),
-                    Volume = obj.Position.VolumeInUnits,
+                    Volume = obj.Position.Quantity,
                     OpenPrice = obj.Position.EntryPrice,
                     OpenTime = obj.Position.EntryTime,
                     ClosePrice = 0.0,
@@ -92,15 +91,21 @@ namespace cAlgo.Robots
         }
         private void PositionsClosed(PositionClosedEventArgs obj)
         {
-            var trade = History.First(a => a.PositionId == obj.Position.Id);
+
             if (service != null)
             {
+                HistoricalTrade trade = null;
+                foreach (var hist in History)
+                {
+                    if (hist.PositionId == obj.Position.Id) trade = hist;
+                }
+                if (trade == null) return;
                 CtOrderData args = new CtOrderData 
                 {
                     Ticket = obj.Position.Id,
                     Symbol = trade.SymbolName,
                     Type = trade.TradeType.ToString(),
-                    Volume = trade.VolumeInUnits,
+                    Volume = trade.Quantity,
                     OpenPrice = trade.EntryPrice,
                     OpenTime = trade.EntryTime,
                     ClosePrice = trade.ClosingPrice,
@@ -179,7 +184,7 @@ namespace cAlgo.Robots
                             Ticket = position.Id,
                             Symbol = position.SymbolName,
                             Type = position.TradeType.ToString(),
-                            Volume = position.VolumeInUnits,
+                            Volume = position.Quantity,
                             Profit = position.NetProfit,
                             OpenPrice = position.EntryPrice,
                             OpenTime = position.EntryTime,
@@ -210,7 +215,7 @@ namespace cAlgo.Robots
                                 Ticket = order.PositionId,
                                 Symbol = order.SymbolName,
                                 Type = order.TradeType.ToString(),
-                                Volume = order.VolumeInUnits,
+                                Volume = order.Quantity,
                                 Profit = order.NetProfit,
                                 OpenPrice = order.EntryPrice,
                                 OpenTime = order.EntryTime,

@@ -91,7 +91,7 @@ namespace CTApiService
         public abstract bool CloseAllPositions();
         public abstract bool ClosePosition(int ticket);
 
-        public void QuoteUpdateCallback(CtQuote quote)
+        public void QuoteUpdateCallback(CtQuoteData quote)
         {
             foreach (var client in _clients)
             {

@@ -10,7 +10,7 @@ namespace CTApiService
         private bool IsConnected => _proxy.State == CommunicationState.Opened;
 
         public delegate void CommunicationEventHandler(bool closed);
-        public delegate void QuoteEventHandler(object sender, CtQuote e);
+        public delegate void QuoteEventHandler(object sender, CtQuoteData e);
         public delegate void PositionOpenEventHandler(object sender, CtOrderData e);
         public delegate void PositionCloseEventHandler(object sender, CtOrderData e);
         public delegate void PositionModifiedEventHandler(object sender, CtOrderData e);
@@ -320,9 +320,9 @@ namespace CTApiService
             };
             OnPositionOpen?.Invoke(this, args);
         }
-        public void QuoteOccured(CtQuote quote)
+        public void QuoteOccured(CtQuoteData quote)
         {
-            CtQuote args = new CtQuote
+            CtQuoteData args = new CtQuoteData
             {
                 Symbol = quote.Symbol,
                 Ask = quote.Ask,

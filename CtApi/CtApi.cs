@@ -1,12 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CTApiService;
 
 namespace CTApi
 {
     public class CtApi
     {
+        private readonly object _locker = new object();
         private CtClient Client;
-        private ConnectionState _state = ConnectionState.Disconnected;
+        private CtConnectionState _state = CtConnectionState.Disconnected;
+
+        public CtConnectionState State
+        {
+            get
+            {
+                return _state;
+            }
+        }
 
         #region Events and Delegates
         public delegate void ConnectionStateChangedEventHandler(object sender, ConnectionStateEventArgs e);
@@ -27,53 +38,87 @@ namespace CTApi
 
         }
 
-        public void Connect(int port)
+        public void BeginConnect(int port)
         {
-            if (_state == ConnectionState.Connected || _state == ConnectionState.Connecting)
+            Task.Factory.StartNew(() => Connect(port));
+        }
+
+        public void BeginDisconnect()
+        {
+            Task.Factory.StartNew(() => Disconnect());
+        }
+
+        private void Connect(int port)
+        {
+            lock (_locker)
             {
-                return;
+                if (_state == CtConnectionState.Connected || _state == CtConnectionState.Connecting)
+                {
+                    return;
+                }
+
+                _state = CtConnectionState.Connecting;
             }
 
-            _state = ConnectionState.Connecting;
             Client = new CtClient(port);
 
             string message = $"Connecting to localhost:{port}";
             ConnectionStateChanged?.Invoke(this, new ConnectionStateEventArgs(_state, message));
 
-            _state = ConnectionState.Failed;
-
-            try
+            lock (_locker)
             {
-                Client.Connect();
-                _state = ConnectionState.Connected;
-            }
-            catch (Exception e)
-            {
-                Client.Dispose();
-                message = $"Failed connection to localhost:{port}. Server not running.";
-            }
+                var state = CtConnectionState.Failed;
 
-            if (_state == ConnectionState.Connected)
-            {
-                //Client.ServiceStopped += ConnectionChangedCallback;
-                Client.Interrupted += ConnectionChangedCallback;
-                Client.OnQuote += QuoteUpdateCallback;
-                Client.OnPositionOpen += PositionOpenCallback;
-                Client.OnPositionModify += PositionModifyCallback;
-                Client.OnPositionClose += PositionCloseCallback;
+                try
+                {
+                    Client.Connect();
+                    state = CtConnectionState.Connected;
+                }
+                catch (Exception e)
+                {
+                    Client.Dispose();
+                    message = $"Failed connection to localhost:{port}. Server not running.";
+                }
 
-                message = $"Connected to localhost:{port}";
+                if (state == CtConnectionState.Connected)
+                {
+                    Client.Interrupted += DisconnectedCallback;
+                    Client.OnQuote += QuoteUpdateCallback;
+                    Client.OnPositionOpen += PositionOpenCallback;
+                    Client.OnPositionModify += PositionModifyCallback;
+                    Client.OnPositionClose += PositionCloseCallback;
+
+                    message = $"Connected to localhost:{port}";
+                }
+                _state = state;
             }
 
             ConnectionStateChanged?.Invoke(this, new ConnectionStateEventArgs(_state, message));
         }
 
-        public void Disconnect()
+        private void Disconnect()
         {
-            _state = ConnectionState.Disconnected;
-            var message = $"Server disconnected successfully";
-            Client.Disconnect();
-            Client.Dispose();
+            string message = "";
+
+            lock (_locker)
+            {
+                var state = CtConnectionState.Disconnected;
+                message = $"Server disconnected successfully";
+                if (!Client.Disconnect())
+                {
+                    state = CtConnectionState.Failed;
+                    message = $"Server disconnection failed";
+                }
+                Client.Interrupted -= DisconnectedCallback;
+                Client.OnQuote -= QuoteUpdateCallback;
+                Client.OnPositionOpen -= PositionOpenCallback;
+                Client.OnPositionModify -= PositionModifyCallback;
+                Client.OnPositionClose -= PositionCloseCallback;
+
+                Client.Dispose();
+                _state = state;
+            }
+
             ConnectionStateChanged?.Invoke(this, new ConnectionStateEventArgs(_state, message));
         }
 
@@ -86,28 +131,91 @@ namespace CTApi
         public int AccountNumber() => Client.AccountNumber();
         public string AccountServer() => Client.AccountServer();
         public DateTime ServerTime() => Client.ServerTime();
-        public CtOrderData[] AccountHistory(DateTime from, DateTime to) => Client.AccountHistory(from, to);
-        public CtOrderData[] AccountPositions() => Client.AccountPositions();
+        public CtOrder[] AccountHistory(DateTime from, DateTime to)
+        {
+            List<CtOrder> retlist = new List<CtOrder>();
+            foreach (var order in Client.AccountHistory(from, to))
+            {
+                var ctorder = new CtOrder
+                {
+                    Ticket = order.Ticket,
+                    Symbol = order.Symbol,
+                    Type = order.Type,
+                    Profit = order.Profit,
+                    Volume = order.Volume,
+                    OpenPrice = order.OpenPrice,
+                    OpenTime = order.OpenTime,
+                    ClosePrice = order.ClosePrice,
+                    CloseTime = order.CloseTime,
+                    Comment = order.Comment,
+                    Commision = order.Commision,
+                    Swap = order.Swap,
+                    StopLoss = order.StopLoss,
+                    TakeProfit = order.TakeProfit
+                };
+                retlist.Add(ctorder);
+            }
+            return retlist.ToArray();
+        }
+        public CtOrder[] AccountPositions()
+        {
+            List<CtOrder> retlist = new List<CtOrder>();
+            foreach (var order in Client.AccountPositions())
+            {
+                var ctorder = new CtOrder
+                {
+                    Ticket = order.Ticket,
+                    Symbol = order.Symbol,
+                    Type = order.Type,
+                    Profit = order.Profit,
+                    Volume = order.Volume,
+                    OpenPrice = order.OpenPrice,
+                    OpenTime = order.OpenTime,
+                    ClosePrice = order.ClosePrice,
+                    CloseTime = order.CloseTime,
+                    Comment = order.Comment,
+                    Commision = order.Commision,
+                    Swap = order.Swap,
+                    StopLoss = order.StopLoss,
+                    TakeProfit = order.TakeProfit
+                };
+                retlist.Add(ctorder);
+            }
+            return retlist.ToArray();
+        }
         public bool CloseAllPositions() => Client.CloseAllPositions();
         public bool ClosePosition(int ticket) => Client.ClosePosition(ticket);
 
-        protected virtual void ConnectionChangedCallback(bool closed)
+        protected virtual void DisconnectedCallback(bool closed)
         {
             string message = "";
-            if (closed)
+
+            lock (_locker)
             {
-                _state = ConnectionState.Disconnected;
-                message = "Server got disconnected";
+                var state = CtConnectionState.Disconnected;
+                if (closed)
+                {
+                    message = "Server disconnected";
+                }
+                else
+                {
+                    state = CtConnectionState.Failed;
+                    message = "Server died";
+                }
+
+                Client.Interrupted -= DisconnectedCallback;
+                Client.OnQuote -= QuoteUpdateCallback;
+                Client.OnPositionOpen -= PositionOpenCallback;
+                Client.OnPositionModify -= PositionModifyCallback;
+                Client.OnPositionClose -= PositionCloseCallback;
+
+                Client.Dispose();
+                _state = state;
             }
-            else
-            {
-                _state = ConnectionState.Failed;
-                message = "Server died";
-            }
-            Client.Dispose();
+
             ConnectionStateChanged?.Invoke(this, new ConnectionStateEventArgs(_state, message));
         }
-        protected virtual void QuoteUpdateCallback(object sender, CtQuote e)
+        protected virtual void QuoteUpdateCallback(object sender, CtQuoteData e)
         {
             CtQuoteEventArgs args = new CtQuoteEventArgs
             {
@@ -180,25 +288,5 @@ namespace CTApi
             };
             OnPositionModify?.Invoke(sender, args);
         }
-    }
-
-    public struct ConnectionStateEventArgs
-    {
-        public ConnectionState State { get; }
-        public string Message { get; }
-
-        public ConnectionStateEventArgs(ConnectionState state, string message)
-        {
-            State = state;
-            Message = message;
-        }
-    }
-
-    public enum ConnectionState
-    {
-        Connected,
-        Connecting,
-        Disconnected,
-        Failed
     }
 }

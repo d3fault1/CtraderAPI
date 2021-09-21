@@ -44,7 +44,7 @@ namespace CTApiService
     public interface ICtApiCallback
     {
         [OperationContract(IsOneWay = true)]
-        void QuoteOccured(CtQuote quote);
+        void QuoteOccured(CtQuoteData quote);
         [OperationContract(IsOneWay = true)]
         void PositionOpenOccured(CtOrderData position);
         [OperationContract(IsOneWay = true)]
@@ -112,8 +112,15 @@ namespace CTApiService
     }
 
     [DataContract]
-    public class CtQuote : ICtQuote
+    public class CtQuoteData : ICtQuote
     {
+        public CtQuoteData()
+        {
+            Symbol = "";
+            Bid = 0.0;
+            Ask = 0.0;
+        }
+
         [DataMember]
         public string Symbol { get; set; }
         [DataMember]
