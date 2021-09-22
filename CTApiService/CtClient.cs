@@ -3,6 +3,7 @@ using System.ServiceModel;
 
 namespace CTApiService
 {
+    [CallbackBehavior(ConcurrencyMode = ConcurrencyMode.Multiple)]
     public class CtClient : ICtApiCallback, IDisposable
     {
         private readonly CtApiProxy _proxy;
@@ -278,7 +279,7 @@ namespace CTApiService
             };
             OnPositionClose?.Invoke(this, args);
         }
-        public void PositionModifiedOccured(CtOrderData position)
+        public void PositionModifyOccured(CtOrderData position)
         {
             CtOrderData args = new CtOrderData
             {

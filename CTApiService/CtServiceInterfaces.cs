@@ -50,7 +50,7 @@ namespace CTApiService
         [OperationContract(IsOneWay = true)]
         void PositionCloseOccured(CtOrderData position);
         [OperationContract(IsOneWay = true)]
-        void PositionModifiedOccured(CtOrderData position);
+        void PositionModifyOccured(CtOrderData position);
     }
 
     public interface ICtOrderData
@@ -114,13 +114,6 @@ namespace CTApiService
     [DataContract]
     public class CtQuoteData : ICtQuote
     {
-        public CtQuoteData()
-        {
-            Symbol = "";
-            Bid = 0.0;
-            Ask = 0.0;
-        }
-
         [DataMember]
         public string Symbol { get; set; }
         [DataMember]

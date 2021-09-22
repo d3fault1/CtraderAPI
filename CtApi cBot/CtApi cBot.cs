@@ -28,7 +28,12 @@ namespace cAlgo.Robots
         {
             if (service != null)
             {
-                service.QuoteUpdateCallback(new CtQuoteData());
+                service.QuoteUpdateCallback(new CtQuoteData()
+                {
+                    Symbol = Symbol.Name,
+                    Bid = Symbol.Bid,
+                    Ask = Symbol.Ask
+                });
             }
         }
 
@@ -91,18 +96,12 @@ namespace cAlgo.Robots
         }
         private void PositionsClosed(PositionClosedEventArgs obj)
         {
-
             if (service != null)
             {
-                HistoricalTrade trade = null;
-                foreach (var hist in History)
-                {
-                    if (hist.PositionId == obj.Position.Id) trade = hist;
-                }
-                if (trade == null) return;
+                var trade = History.FirstOrDefault(a => a.PositionId == obj.Position.Id);
                 CtOrderData args = new CtOrderData 
                 {
-                    Ticket = obj.Position.Id,
+                    Ticket = trade.PositionId,
                     Symbol = trade.SymbolName,
                     Type = trade.TradeType.ToString(),
                     Volume = trade.Quantity,

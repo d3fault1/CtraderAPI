@@ -93,58 +93,118 @@ namespace CTApiService
 
         public void QuoteUpdateCallback(CtQuoteData quote)
         {
-            foreach (var client in _clients)
+            try
             {
+                _clientslocker.AcquireReaderLock(2000);
                 try
                 {
-                    client.QuoteOccured(quote);
+                    foreach (var client in _clients)
+                    {
+                        try
+                        {
+                            client.QuoteOccured(quote);
+                        }
+                        catch (Exception e)
+                        {
+                            return;
+                        }
+                    }
                 }
-                catch
+                finally
                 {
-                    return;
+                    _clientslocker.ReleaseReaderLock();
                 }
+            }
+            catch (ApplicationException ex)
+            {
+                return;
             }
         }
         public void PositionOpenCallback(CtOrderData position)
         {
-            foreach (var client in _clients)
+            try
             {
+                _clientslocker.AcquireReaderLock(2000);
                 try
                 {
-                    client.PositionOpenOccured(position);
+                    foreach (var client in _clients)
+                    {
+                        try
+                        {
+                            client.PositionOpenOccured(position);
+                        }
+                        catch (Exception e)
+                        {
+                            return;
+                        }
+                    }
                 }
-                catch
+                finally
                 {
-                    return;
+                    _clientslocker.ReleaseReaderLock();
                 }
+            }
+            catch (ApplicationException ex)
+            {
+                return;
             }
         }
         public void PositionCloseCallback(CtOrderData position)
         {
-            foreach (var client in _clients)
+            try
             {
+                _clientslocker.AcquireReaderLock(2000);
                 try
                 {
-                    client.PositionCloseOccured(position);
+                    foreach (var client in _clients)
+                    {
+                        try
+                        {
+                            client.PositionCloseOccured(position);
+                        }
+                        catch (Exception e)
+                        {
+                            return;
+                        }
+                    }
                 }
-                catch
+                finally
                 {
-                    return;
+                    _clientslocker.ReleaseReaderLock();
                 }
+            }
+            catch (ApplicationException ex)
+            {
+                return;
             }
         }
         public void PositionModifyCallback(CtOrderData position)
         {
-            foreach (var client in _clients)
+            try
             {
+                _clientslocker.AcquireReaderLock(2000);
                 try
                 {
-                    client.PositionModifiedOccured(position);
+                    foreach (var client in _clients)
+                    {
+                        try
+                        {
+                            client.PositionModifyOccured(position);
+                        }
+                        catch (Exception e)
+                        {
+                            return;
+                        }
+                    }
                 }
-                catch
+                finally
                 {
-                    return;
+                    _clientslocker.ReleaseReaderLock();
                 }
+            }
+            catch (ApplicationException ex)
+            {
+                return;
             }
         }
     }
