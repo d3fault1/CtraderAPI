@@ -61,11 +61,11 @@ namespace CTApiService
                 return false;
             }
 
-            bool coonected;
+            bool connected;
 
             try
             {
-                coonected = _proxy.Connect();
+                connected = _proxy.Connect();
             }
             catch (Exception ex)
             {
@@ -74,7 +74,7 @@ namespace CTApiService
                 throw new CommunicationException($"Connection failed to service. {ex.Message}");
             }
 
-            if (coonected == false)
+            if (connected == false)
             {
                 //Log.Error("Connect: end. Connection failed.");
                 throw new CommunicationException("Connection failed");
