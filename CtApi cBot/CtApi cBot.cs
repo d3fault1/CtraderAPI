@@ -200,26 +200,26 @@ namespace cAlgo.Robots
                 }
                 return positions;
             }
-            public override List<CtOrderData> AccountHistory(DateTime @from, DateTime to)
+            public override List<CtOrderData> AccountHistory(DateTime start, DateTime end)
             {
                 List<CtOrderData> history = new List<CtOrderData>();
                 if (cBot != null)
                 {
                     foreach (var order in cBot.History)
                     {
-                        if (order.EntryTime >= @from && order.EntryTime <= to)
+                        if (order.ClosingTime >= start && order.ClosingTime <= end)
                         {
                             var data = new CtOrderData 
                             {
-                                Ticket = order.PositionId,
+                                Ticket = order.ClosingDealId,
                                 Symbol = order.SymbolName,
                                 Type = order.TradeType.ToString(),
                                 Volume = order.Quantity,
                                 Profit = order.NetProfit,
                                 OpenPrice = order.EntryPrice,
                                 OpenTime = order.EntryTime,
-                                ClosePrice = 0.0,
-                                CloseTime = DateTime.Now,
+                                ClosePrice = order.ClosingPrice,
+                                CloseTime = order.ClosingTime,
                                 Comment = order.Comment,
                                 Commision = order.Commissions,
                                 Swap = order.Swap,
