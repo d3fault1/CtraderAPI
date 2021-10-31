@@ -56,6 +56,7 @@ namespace CTApiService
     public interface ICtOrderData
     {
         int Ticket { get; set; }
+        int ClosingTicket { get; set; }
         string Symbol { get; set; }
         string Type { get; set; }
         double OpenPrice { get; set; }
@@ -65,7 +66,7 @@ namespace CTApiService
         double Profit { get; set; }
         double Volume { get; set; }
         string Comment { get; set; }
-        double Commision { get; set; }
+        double Commission { get; set; }
         double Swap { get; set; }
         double StopLoss { get; set; }
         double TakeProfit { get; set; }
@@ -83,6 +84,8 @@ namespace CTApiService
     {
         [DataMember]
         public int Ticket { get; set; }
+        [DataMember]
+        public int ClosingTicket { get; set; }
         [DataMember]
         public string Symbol { get; set; }
         [DataMember]
@@ -102,7 +105,7 @@ namespace CTApiService
         [DataMember]
         public string Comment { get; set; }
         [DataMember]
-        public double Commision { get; set; }
+        public double Commission { get; set; }
         [DataMember]
         public double Swap { get; set; }
         [DataMember]

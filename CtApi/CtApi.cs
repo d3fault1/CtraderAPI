@@ -139,6 +139,7 @@ namespace CTApi
                 var ctorder = new CtOrder
                 {
                     Ticket = order.Ticket,
+                    ClosingTicket = order.ClosingTicket,
                     Symbol = order.Symbol,
                     Type = order.Type,
                     Profit = order.Profit,
@@ -148,7 +149,7 @@ namespace CTApi
                     ClosePrice = order.ClosePrice,
                     CloseTime = order.CloseTime,
                     Comment = order.Comment,
-                    Commision = order.Commision,
+                    Commission = order.Commission,
                     Swap = order.Swap,
                     StopLoss = order.StopLoss,
                     TakeProfit = order.TakeProfit
@@ -165,6 +166,7 @@ namespace CTApi
                 var ctorder = new CtOrder
                 {
                     Ticket = order.Ticket,
+                    ClosingTicket = order.ClosingTicket,
                     Symbol = order.Symbol,
                     Type = order.Type,
                     Profit = order.Profit,
@@ -174,7 +176,7 @@ namespace CTApi
                     ClosePrice = order.ClosePrice,
                     CloseTime = order.CloseTime,
                     Comment = order.Comment,
-                    Commision = order.Commision,
+                    Commission = order.Commission,
                     Swap = order.Swap,
                     StopLoss = order.StopLoss,
                     TakeProfit = order.TakeProfit
@@ -230,6 +232,7 @@ namespace CTApi
             CtOrderDataEventArgs args = new CtOrderDataEventArgs
             {
                 Ticket = e.Ticket,
+                ClosingTicket = e.ClosingTicket,
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Volume = e.Volume,
@@ -239,7 +242,7 @@ namespace CTApi
                 ClosePrice = e.ClosePrice,
                 CloseTime = e.CloseTime,
                 Comment = e.Comment,
-                Commision = e.Commision,
+                Commission = e.Commission,
                 Swap = e.Swap,
                 TakeProfit = e.TakeProfit,
                 StopLoss = e.StopLoss,
@@ -251,6 +254,7 @@ namespace CTApi
             CtOrderDataEventArgs args = new CtOrderDataEventArgs
             {
                 Ticket = e.Ticket,
+                ClosingTicket = e.ClosingTicket,
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Volume = e.Volume,
@@ -260,7 +264,7 @@ namespace CTApi
                 ClosePrice = e.ClosePrice,
                 CloseTime = e.CloseTime,
                 Comment = e.Comment,
-                Commision = e.Commision,
+                Commission = e.Commission,
                 Swap = e.Swap,
                 TakeProfit = e.TakeProfit,
                 StopLoss = e.StopLoss,
@@ -272,6 +276,7 @@ namespace CTApi
             CtOrderDataEventArgs args = new CtOrderDataEventArgs
             {
                 Ticket = e.Ticket,
+                ClosingTicket = e.ClosingTicket,
                 Symbol = e.Symbol,
                 Type = e.Type,
                 Volume = e.Volume,
@@ -281,7 +286,7 @@ namespace CTApi
                 ClosePrice = e.ClosePrice,
                 CloseTime = e.CloseTime,
                 Comment = e.Comment,
-                Commision = e.Commision,
+                Commission = e.Commission,
                 Swap = e.Swap,
                 TakeProfit = e.TakeProfit,
                 StopLoss = e.StopLoss,

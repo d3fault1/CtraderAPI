@@ -53,15 +53,16 @@ namespace cAlgo.Robots
                 CtOrderData args = new CtOrderData 
                 {
                     Ticket = obj.Position.Id,
+                    ClosingTicket = 0,
                     Symbol = obj.Position.SymbolName,
                     Type = obj.Position.TradeType.ToString(),
                     Volume = obj.Position.Quantity,
                     OpenPrice = obj.Position.EntryPrice,
                     OpenTime = obj.Position.EntryTime,
                     ClosePrice = 0.0,
-                    CloseTime = DateTime.Now,
+                    CloseTime = DateTime.MinValue,
                     Comment = obj.Position.Comment,
-                    Commision = obj.Position.Commissions,
+                    Commission = obj.Position.Commissions,
                     Swap = obj.Position.Swap,
                     Profit = obj.Position.NetProfit
                 };
@@ -77,15 +78,16 @@ namespace cAlgo.Robots
                 CtOrderData args = new CtOrderData 
                 {
                     Ticket = obj.Position.Id,
+                    ClosingTicket = 0,
                     Symbol = obj.Position.SymbolName,
                     Type = obj.Position.TradeType.ToString(),
                     Volume = obj.Position.Quantity,
                     OpenPrice = obj.Position.EntryPrice,
                     OpenTime = obj.Position.EntryTime,
                     ClosePrice = 0.0,
-                    CloseTime = DateTime.Now,
+                    CloseTime = DateTime.MinValue,
                     Comment = obj.Position.Comment,
-                    Commision = obj.Position.Commissions,
+                    Commission = obj.Position.Commissions,
                     Swap = obj.Position.Swap,
                     Profit = obj.Position.NetProfit
                 };
@@ -102,6 +104,7 @@ namespace cAlgo.Robots
                 CtOrderData args = new CtOrderData 
                 {
                     Ticket = trade.PositionId,
+                    ClosingTicket = trade.ClosingDealId,
                     Symbol = trade.SymbolName,
                     Type = trade.TradeType.ToString(),
                     Volume = trade.Quantity,
@@ -110,7 +113,7 @@ namespace cAlgo.Robots
                     ClosePrice = trade.ClosingPrice,
                     CloseTime = trade.ClosingTime,
                     Comment = trade.Comment,
-                    Commision = trade.Commissions,
+                    Commission = trade.Commissions,
                     Swap = trade.Swap,
                     Profit = trade.NetProfit
                 };
@@ -155,16 +158,16 @@ namespace cAlgo.Robots
 
             public override string AccountName()
             {
-                return "";
+                return cBot != null ? cBot.Account.UserId.ToString() : "";
             }
 
             public override int AccountNumber()
             {
-                return cBot != null ? (int)cBot.Account.UserId : 0;
+                return cBot != null ? (int)cBot.Account.Number : 0;
             }
             public override string AccountServer()
             {
-                return cBot != null ? cBot.Server.ToString() : "";
+                return cBot != null ? cBot.Account.IsLive ? "Live" : "Demo" : "";
             }
             public override DateTime ServerTime()
             {
@@ -181,6 +184,7 @@ namespace cAlgo.Robots
                         var data = new CtOrderData 
                         {
                             Ticket = position.Id,
+                            ClosingTicket = 0,
                             Symbol = position.SymbolName,
                             Type = position.TradeType.ToString(),
                             Volume = position.Quantity,
@@ -188,9 +192,9 @@ namespace cAlgo.Robots
                             OpenPrice = position.EntryPrice,
                             OpenTime = position.EntryTime,
                             ClosePrice = 0.0,
-                            CloseTime = DateTime.Now,
+                            CloseTime = DateTime.MinValue,
                             Comment = position.Comment,
-                            Commision = position.Commissions,
+                            Commission = position.Commissions,
                             Swap = position.Swap
                         };
                         data.StopLoss = position.StopLoss.HasValue ? position.StopLoss.Value : 0;
@@ -211,7 +215,8 @@ namespace cAlgo.Robots
                         {
                             var data = new CtOrderData 
                             {
-                                Ticket = order.ClosingDealId,
+                                Ticket = order.PositionId,
+                                ClosingTicket = order.ClosingDealId,
                                 Symbol = order.SymbolName,
                                 Type = order.TradeType.ToString(),
                                 Volume = order.Quantity,
@@ -221,7 +226,7 @@ namespace cAlgo.Robots
                                 ClosePrice = order.ClosingPrice,
                                 CloseTime = order.ClosingTime,
                                 Comment = order.Comment,
-                                Commision = order.Commissions,
+                                Commission = order.Commissions,
                                 Swap = order.Swap,
                                 StopLoss = 0,
                                 TakeProfit = 0

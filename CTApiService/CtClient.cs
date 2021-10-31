@@ -263,6 +263,7 @@ namespace CTApiService
             CtOrderData args = new CtOrderData
             {
                 Ticket = position.Ticket,
+                ClosingTicket = position.ClosingTicket,
                 Symbol = position.Symbol,
                 Type = position.Type,
                 Volume = position.Volume,
@@ -274,7 +275,7 @@ namespace CTApiService
                 TakeProfit = position.TakeProfit,
                 StopLoss = position.StopLoss,
                 Comment = position.Comment,
-                Commision = position.Commision,
+                Commission = position.Commission,
                 Swap = position.Swap
             };
             OnPositionClose?.Invoke(this, args);
@@ -284,6 +285,7 @@ namespace CTApiService
             CtOrderData args = new CtOrderData
             {
                 Ticket = position.Ticket,
+                ClosingTicket = position.ClosingTicket,
                 Symbol = position.Symbol,
                 Type = position.Type,
                 Volume = position.Volume,
@@ -295,7 +297,7 @@ namespace CTApiService
                 TakeProfit = position.TakeProfit,
                 StopLoss = position.StopLoss,
                 Comment = position.Comment,
-                Commision = position.Commision,
+                Commission = position.Commission,
                 Swap = position.Swap
             };
             OnPositionModify?.Invoke(this, args);
@@ -305,6 +307,7 @@ namespace CTApiService
             CtOrderData args = new CtOrderData
             {
                 Ticket = position.Ticket,
+                ClosingTicket = position.ClosingTicket,
                 Symbol = position.Symbol,
                 Type = position.Type,
                 Volume = position.Volume,
@@ -316,7 +319,7 @@ namespace CTApiService
                 TakeProfit = position.TakeProfit,
                 StopLoss = position.StopLoss,
                 Comment = position.Comment,
-                Commision = position.Commision,
+                Commission = position.Commission,
                 Swap = position.Swap
             };
             OnPositionOpen?.Invoke(this, args);
