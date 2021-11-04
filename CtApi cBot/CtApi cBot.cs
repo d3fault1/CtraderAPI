@@ -13,11 +13,15 @@ namespace cAlgo.Robots
         public int Port { get; set; }
 
         public CtApiService service = null;
+        public Dictionary<int, double> PosVolRec = null;
 
         protected override void OnStart()
         {
+            PosVolRec = new Dictionary<int, double>();
             service = new CtApiService(this);
             Port = CtAdapter.GetInstance().AddBot(Port, service);
+            PosVolRec.Clear();
+            foreach(var pos in Positions) PosVolRec.Add(pos.Id, pos.Quantity);
             Positions.Opened += PositionsOpened;
             Positions.Modified += PositionsModified;
             Positions.Closed += PositionsClosed;
@@ -30,7 +34,7 @@ namespace cAlgo.Robots
             {
                 service.QuoteUpdateCallback(new CtQuoteData()
                 {
-                    Symbol = Symbol.Name,
+                    Symbol = Symbol.Name.Replace("/", ""),
                     Bid = Symbol.Bid,
                     Ask = Symbol.Ask
                 });
@@ -48,13 +52,14 @@ namespace cAlgo.Robots
 
         private void PositionsOpened(PositionOpenedEventArgs obj)
         {
+            if (!PosVolRec.ContainsKey(obj.Position.Id)) PosVolRec.Add(obj.Position.Id, obj.Position.Quantity);
             if (service != null)
             {
                 CtOrderData args = new CtOrderData 
                 {
                     Ticket = obj.Position.Id,
                     ClosingTicket = 0,
-                    Symbol = obj.Position.SymbolName,
+                    Symbol = obj.Position.SymbolName.Replace("/", ""),
                     Type = obj.Position.TradeType.ToString(),
                     Volume = obj.Position.Quantity,
                     OpenPrice = obj.Position.EntryPrice,
@@ -75,37 +80,64 @@ namespace cAlgo.Robots
         {
             if (service != null)
             {
-                CtOrderData args = new CtOrderData 
+                if (obj.Position.Quantity < PosVolRec[obj.Position.Id])
                 {
-                    Ticket = obj.Position.Id,
-                    ClosingTicket = 0,
-                    Symbol = obj.Position.SymbolName,
-                    Type = obj.Position.TradeType.ToString(),
-                    Volume = obj.Position.Quantity,
-                    OpenPrice = obj.Position.EntryPrice,
-                    OpenTime = obj.Position.EntryTime,
-                    ClosePrice = 0.0,
-                    CloseTime = DateTime.MinValue,
-                    Comment = obj.Position.Comment,
-                    Commission = obj.Position.Commissions,
-                    Swap = obj.Position.Swap,
-                    Profit = obj.Position.NetProfit
-                };
-                args.StopLoss = obj.Position.StopLoss.HasValue ? obj.Position.StopLoss.Value : 0.0;
-                args.TakeProfit = obj.Position.TakeProfit.HasValue ? obj.Position.TakeProfit.Value : 0.0;
-                service.PositionModifyCallback(args);
+                    var trade = History.LastOrDefault(a => a.PositionId == obj.Position.Id);
+                    CtOrderData args = new CtOrderData
+                    {
+                        Ticket = trade.PositionId,
+                        ClosingTicket = trade.ClosingDealId,
+                        Symbol = trade.SymbolName.Replace("/", ""),
+                        Type = trade.TradeType.ToString(),
+                        Volume = trade.Quantity,
+                        OpenPrice = trade.EntryPrice,
+                        OpenTime = trade.EntryTime,
+                        ClosePrice = trade.ClosingPrice,
+                        CloseTime = trade.ClosingTime,
+                        Comment = trade.Comment,
+                        Commission = trade.Commissions,
+                        Swap = trade.Swap,
+                        Profit = trade.NetProfit
+                    };
+                    args.StopLoss = obj.Position.StopLoss.HasValue ? obj.Position.StopLoss.Value : 0.0;
+                    args.TakeProfit = obj.Position.TakeProfit.HasValue ? obj.Position.TakeProfit.Value : 0.0;
+                    service.PositionCloseCallback(args);
+                }
+                else
+                {
+                    CtOrderData args = new CtOrderData
+                    {
+                        Ticket = obj.Position.Id,
+                        ClosingTicket = 0,
+                        Symbol = obj.Position.SymbolName.Replace("/", ""),
+                        Type = obj.Position.TradeType.ToString(),
+                        Volume = obj.Position.Quantity,
+                        OpenPrice = obj.Position.EntryPrice,
+                        OpenTime = obj.Position.EntryTime,
+                        ClosePrice = 0.0,
+                        CloseTime = DateTime.MinValue,
+                        Comment = obj.Position.Comment,
+                        Commission = obj.Position.Commissions,
+                        Swap = obj.Position.Swap,
+                        Profit = obj.Position.NetProfit
+                    };
+                    args.StopLoss = obj.Position.StopLoss.HasValue ? obj.Position.StopLoss.Value : 0.0;
+                    args.TakeProfit = obj.Position.TakeProfit.HasValue ? obj.Position.TakeProfit.Value : 0.0;
+                    service.PositionModifyCallback(args);
+                }
             }
+            PosVolRec[obj.Position.Id] = obj.Position.Quantity;
         }
         private void PositionsClosed(PositionClosedEventArgs obj)
         {
             if (service != null)
             {
-                var trade = History.FirstOrDefault(a => a.PositionId == obj.Position.Id);
+                var trade = History.LastOrDefault(a => a.PositionId == obj.Position.Id);
                 CtOrderData args = new CtOrderData 
                 {
                     Ticket = trade.PositionId,
                     ClosingTicket = trade.ClosingDealId,
-                    Symbol = trade.SymbolName,
+                    Symbol = trade.SymbolName.Replace("/", ""),
                     Type = trade.TradeType.ToString(),
                     Volume = trade.Quantity,
                     OpenPrice = trade.EntryPrice,
@@ -121,6 +153,7 @@ namespace cAlgo.Robots
                 args.TakeProfit = obj.Position.TakeProfit.HasValue ? obj.Position.TakeProfit.Value : 0.0;
                 service.PositionCloseCallback(args);
             }
+            if (PosVolRec.ContainsKey(obj.Position.Id)) PosVolRec.Remove(obj.Position.Id);
         }
 
         public class CtApiService : CtServiceBase
@@ -185,7 +218,7 @@ namespace cAlgo.Robots
                         {
                             Ticket = position.Id,
                             ClosingTicket = 0,
-                            Symbol = position.SymbolName,
+                            Symbol = position.SymbolName.Replace("/", ""),
                             Type = position.TradeType.ToString(),
                             Volume = position.Quantity,
                             Profit = position.NetProfit,
@@ -217,7 +250,7 @@ namespace cAlgo.Robots
                             {
                                 Ticket = order.PositionId,
                                 ClosingTicket = order.ClosingDealId,
-                                Symbol = order.SymbolName,
+                                Symbol = order.SymbolName.Replace("/", ""),
                                 Type = order.TradeType.ToString(),
                                 Volume = order.Quantity,
                                 Profit = order.NetProfit,
