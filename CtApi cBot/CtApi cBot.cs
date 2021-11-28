@@ -244,7 +244,10 @@ namespace cAlgo.Robots
                 {
                     foreach (var order in cBot.History)
                     {
-                        if (order.ClosingTime >= start && order.ClosingTime <= end)
+                        var orderDateTime = order.ClosingTime;
+                        if (start.Millisecond == 0 && end.Millisecond == 0)
+                            orderDateTime = orderDateTime.AddMilliseconds(-1 * orderDateTime.Millisecond);
+                        if (orderDateTime >= start && orderDateTime <= end)
                         {
                             var data = new CtOrderData 
                             {
